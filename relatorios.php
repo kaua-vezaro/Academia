@@ -1,16 +1,17 @@
 <?php
 session_start();
 include("conexao.php");
-
+// Verifica se o usuário está logado 
 if (!isset($_SESSION["usuario"])) {
     header("Location: login.php");
     exit;
 }
-
+// Recebe os filtros vindos pela URL
+// Se não existirem, usa valor vazio 
 $nome = $_GET['nome'] ?? '';
 $data = $_GET['data'] ?? '';
 $status = $_GET['status'] ?? '';
-
+// Monta a consulta dos pagamentos
 $sql = "SELECT 
             pagamentos.id,
             alunos.nome AS aluno,
@@ -20,14 +21,14 @@ $sql = "SELECT
             pagamentos.status
         FROM pagamentos
         JOIN alunos ON alunos.id = pagamentos.aluno_id
-        WHERE 1=1";
+        WHERE 1=1"; // WHERE 1=1 é usdo para facilitar a adição de filtros dinâmicos 
 
 // Filtro por nome do aluno
 if (!empty($nome)) {
     $sql .= " AND alunos.nome LIKE '%$nome%'";
 }
 
-// Filtro por data
+// Filtro por data do pagamento 
 if (!empty($data)) {
     $sql .= " AND pagamentos.data_pagamento = '$data'";
 }
@@ -36,7 +37,7 @@ if (!empty($data)) {
 if (!empty($status)) {
     $sql .= " AND pagamentos.status = '$status'";
 }
-
+// Executa a consulta no banco de dados 
 $result = mysqli_query($conexao, $sql);
 ?>
 <!DOCTYPE html>
@@ -47,7 +48,7 @@ $result = mysqli_query($conexao, $sql);
 <body>
 
     <h1>Relatórios</h1>
-
+<!-- Tabela que exibe os resultados filtrados-->
 <table border="1" cellpadding="10">
     <tr>
         <th>Aluno</th>
@@ -56,9 +57,12 @@ $result = mysqli_query($conexao, $sql);
         <th>Forma de Pagamento</th>
         <th>Status</th>
     </tr>
-
-    <?php while ($row = mysqli_fetch_assoc($result)) { ?>
+    <?php 
+    // Percorre todos os resultados da consulta 
+    while ($row = mysqli_fetch_assoc($result)) { 
+    ?>
     <tr>
+        <!-- Exibe o nome do aluno e os de baixo faz a mesma coisa -->
         <td><?= $row['aluno'] ?></td>
         <td><?= $row['valor'] ?></td>
         <td><?= $row['data_pagamento'] ?></td>
