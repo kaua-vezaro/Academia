@@ -49,7 +49,7 @@ if (isset($_POST["cadastrar"])){
         <title>Cadastro de Alunos</title>
     </head>
     <body>
-
+        
         <!-- Título principal da página -->
         <h1> Cadastro de Alunos</h1>
 
