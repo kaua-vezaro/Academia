@@ -2,28 +2,28 @@
 session_start();
 include("conexao.php");
 
+// Verifica se o usuário está logado
 if (!isset($_SESSION["usuario"])) {
     header("Location: login.php");
     exit;
 }
 
-// Apenas administradores podem acessar
+// Verifica se o usuário tem nível de administrador 
 if ($_SESSION["nivel"] != "admin") {
     die("Acesso negado!");
 }
-
-
 // Cadastro de usuário
+// Verifica se o formulário foi enviado
 if (isset($_POST["cadastrar"])) {
-
+    // Recebe os dados do formulário
     $nome = $_POST["nome"];
     $usuario = $_POST["usuario"];
     $senha = $_POST["senha"];
     $nivel = $_POST["nivel"];
-
+    // Insere novo usuário no banco 
     $sql = "INSERT INTO usuario (nome, usuario, senha, nivel)
             VALUES ('$nome', '$usuario', '$senha', '$nivel')";
-
+    // Executa o comando no banco de dados e se der certo, volta à página de usuarios
     if (mysqli_query($conexao, $sql)) {
         header("Location: usuarios.php");
         exit;
@@ -42,7 +42,7 @@ if (isset($_POST["cadastrar"])) {
 <body>
 
 <h1>Gerenciar Usuários</h1>
-
+<!-- Formulário de cadastro onde pede as respectivas informações: -->
 <form method="POST">
 
     <label>Nome:</label><br>
@@ -67,7 +67,7 @@ if (isset($_POST["cadastrar"])) {
 <hr>
 
 <h2>Usuários Cadastrados</h2>
-
+<!-- Tabela de usuários -->
 <table border="1" cellpadding="8">
     <tr>
         <th>ID</th>
@@ -79,18 +79,17 @@ if (isset($_POST["cadastrar"])) {
 
 <?php
 
+// Busca todos os usuários cadastrados
 $sql = "SELECT * FROM usuario";
 $resultado = mysqli_query($conexao, $sql);
-
+// Percorre todos os usuários e pega as informações pedidas
 while ($linha = mysqli_fetch_assoc($resultado)) {
-
     echo "<tr>";
-
     echo "<td>".$linha["id"]."</td>";
     echo "<td>".$linha["nome"]."</td>";
     echo "<td>".$linha["usuario"]."</td>";
     echo "<td>".$linha["nivel"]."</td>";
-
+    // link de editar e excluir
     echo "<td>
             <a href='editar_usuario.php?id=".$linha["id"]."'>Editar</a> |
             <a href='excluir_usuario.php?id=".$linha["id"]."' onclick=\"return confirm('Deseja excluir este usuário?')\">Excluir</a>
