@@ -2,23 +2,24 @@
 session_start();
 include("conexao.php");
 
+//Verifica se o usuário está logado
 if (!isset($_SESSION["usuario"])) {
     header("Location: login.php");
     exit;
 }
-
+// Verifica se o usuário é administrador
 if ($_SESSION["nivel"] != "admin") {
     die("Acesso negado!");
 }
-
+// Verifica se o formulário cadastrado foi enviado
 if (isset($_POST["cadastrar"])) {
-
+    // Recebe os dados do formulário
     $aluno_id = $_POST["aluno_id"];
     $data_pagamento = $_POST["data_pagamento"];
     $forma_pagamento = $_POST["forma_pagamento"];
     $status = $_POST["status"];
 
-    // Busca o valor do plano do aluno
+    // Busca o valor do plano do aluno selecionado 
     $sql_valor = "
         SELECT planos.valor
         FROM alunos
@@ -28,15 +29,15 @@ if (isset($_POST["cadastrar"])) {
 
     $resultado_valor = mysqli_query($conexao, $sql_valor);
     $dados_valor = mysqli_fetch_assoc($resultado_valor);
-
+    // Guarda o valor do plano
     $valor = $dados_valor["valor"];
 
-    // Insere o pagamento
+    // Insere o pagamento no banco
     $sql = "INSERT INTO pagamentos
             (aluno_id, valor, data_pagamento, forma_pagamento, status)
             VALUES
             ('$aluno_id', '$valor', '$data_pagamento', '$forma_pagamento', '$status')";
-
+    // Executa a inserção e se der certo volta para a página de pagamento
     if (mysqli_query($conexao, $sql)) {
         header("Location: pagamento.php");
         exit;
@@ -57,19 +58,20 @@ if (isset($_POST["cadastrar"])) {
 <h1>Gerenciar Pagamentos</h1>
 
 <form method="POST">
-
+    <!-- Selecão do aluno -->
     <label>Aluno:</label><br>
     <select name="aluno_id" id="aluno" onchange="mostrarValor()" required>
         <option value="">Selecione</option>
 
         <?php
+        // Busca alunos e seus respectivos planos 
         $sql = "SELECT
         alunos.id,
         alunos.nome,
         planos.valor
         FROM alunos INNER JOIN planos ON alunos.plano_id = planos.id";
         $resultado = mysqli_query($conexao, $sql);
-
+        // Cria opções no select para cada aluno
         while ($aluno = mysqli_fetch_assoc($resultado)) {
             ?>
             <option value="<?php echo $aluno["id"]; ?>"
@@ -82,7 +84,7 @@ if (isset($_POST["cadastrar"])) {
     </select>
 
     <br><br>
-
+    <!-- Mostra o valor do plano automaticamente -->
     <label>Valor do Plano:</label><br>
     <input type="text" id="valorPlano" readonly>
 
@@ -109,10 +111,10 @@ if (isset($_POST["cadastrar"])) {
     </select>
 
     <br><br>
-
+    <!-- Envia as informações e abaixo volta ao dashboard--> 
     <input type="submit" name="cadastrar" value="Cadastrar">
     <br><br>
-
+    
     <button type="button" onclick="window.location.href='dashboard.php'">
         Voltar ao Dashboard
     </button>
@@ -123,7 +125,7 @@ if (isset($_POST["cadastrar"])) {
 <hr>
 
 <h2>Pagamentos Cadastrados</h2>
-
+<!-- Tabela de pagamentos -->
 <table border="1" cellpadding="8">
     <tr>
         <th>ID</th>
@@ -136,7 +138,7 @@ if (isset($_POST["cadastrar"])) {
     </tr>
 
 <?php
-
+// Busca todos os pagamentos cadastrador com o nome do aluno
 $sql = "
 SELECT pagamentos.*, alunos.nome AS aluno
 FROM pagamentos
@@ -145,7 +147,7 @@ ON pagamentos.aluno_id = alunos.id
 ";
 
 $resultado = mysqli_query($conexao, $sql);
-
+// Exibe cada pagamento na tabela com suas respectivas informações
 while ($linha = mysqli_fetch_assoc($resultado)) {
 
     echo "<tr>";
@@ -156,7 +158,7 @@ while ($linha = mysqli_fetch_assoc($resultado)) {
     echo "<td>".$linha["data_pagamento"]."</td>";
     echo "<td>".$linha["forma_pagamento"]."</td>";
     echo "<td>".$linha["status"]."</td>";
-
+    // links para editar e excluir 
     echo "<td>
             <a href='editar_pagamento.php?id=".$linha["id"]."'>Editar</a> |
             <a href='excluir_pagamento.php?id=".$linha["id"]."' onclick=\"return confirm('Deseja excluir?')\">Excluir</a>
@@ -169,6 +171,7 @@ while ($linha = mysqli_fetch_assoc($resultado)) {
 
 </table>
 <script>
+// Função para mostrar o valor do plano automaticamente quando o aluno é selecionado
 function mostrarValor() {
     const select = document.getElementById("aluno");
     const opcao = select.options[select.selectedIndex];
