@@ -1,27 +1,25 @@
 <?php
 session_start();
 include("conexao.php");
-// Verifica se o usuário estpa logado, se não estiver redireciona para a tela de login
+
 if(!isset($_SESSION["usuario"])) {
     header("Location: login.php");
     exit;
 }
-// Verifica se o usuário é administrador 
+
 if ($_SESSION["nivel"] != "admin"){
     die("Acesso negado!");
 }
-// Verifica se o formulário de cadastro foi enviado 
+
 if (isset($_POST["cadastrar"])){
-    // Recebe os dados do formulário
     $nome = $_POST["nome"];
     $valor = $_POST["valor"];
     $duracao_meses = $_POST["duracao_meses"];
-    // Insere o novo plano no banco de dados
+
     $sql = "INSERT INTO planos (nome, valor, duracao_meses) 
     VALUES ('$nome', '$valor', '$duracao_meses')";
-    // Executa a inserção
+
     if (mysqli_query($conexao, $sql)) {
-        // Se der certo, redireciona para a página de planos 
         header("Location: planos.php");
         exit;   
     } else {
@@ -36,9 +34,10 @@ if (isset($_POST["cadastrar"])){
         <meta charset="UTF-8">
         <title>Gerenciar Planos</title>
     </head>
-    <body>
-        <h1>Gerenciar Planos</h1>
-        <!-- Cria formulário de cadastro de plano e insere as informações -->
+    <body style="display:flex; justify-content:center; margin:20px;">
+        <fieldset style="padding: 30px;">
+
+        <h1 align="center">Gerenciar Planos</h1>
         <form method="POST">
             <label> Nome do plano: </label>
             <input type="text" name="nome" required><br><br>
@@ -51,15 +50,16 @@ if (isset($_POST["cadastrar"])){
 
             <input type="submit" name="cadastrar" value="Cadastrar Plano">
             <br><br>
-            <!-- Volta ao dashboard -->
+
             <button type="button" onclick="window.location.href='dashboard.php'">
             Voltar
             </button>
-            <br><br>
+            <br>
+            
         </form>
     <hr> 
-    <h2>Planos Cadastrados</h2>
-    <!-- Tabela que lista os planos  -->
+    <h2 align="center">Planos Cadastrados</h2>
+
     <table border="1" cellpadding="8">
         <tr> 
             <th>ID</th>
@@ -69,17 +69,15 @@ if (isset($_POST["cadastrar"])){
             <th>Ações</th>
         </tr>
         <?php
-        // Busca todos os planos cadastrados 
         $sql = "SELECT * FROM planos";
         $resultado = mysqli_query($conexao, $sql);
-        // Percorre todos os planos encontrados e pega a informação dos mesmos 
+
         while ($plano = mysqli_fetch_assoc($resultado)) {
             echo "<tr>";
             echo "<td>" . $plano["id"] . "</td>";
             echo "<td>" . $plano["nome"] . "</td>";
             echo "<td>R$ " . number_format($plano["valor"], 2, '.', ',') . "</td>";
             echo "<td>" . $plano["duracao_meses"] . "</td>";
-            // link para editar e excluir
             echo "<td>
                 <a href='editar_plano.php?id=" . $plano["id"] . "'>Editar</a> | 
                 <a href='excluir_plano.php?id=" . $plano["id"] . "' onclick=\"return confirm('Tem certeza que deseja excluir este plano?');\">Excluir</a>
@@ -88,5 +86,8 @@ if (isset($_POST["cadastrar"])){
         }
         ?>
     </table>
+    <br>
+    <div align="center">
+    </fieldset>
     </body>
 </html>

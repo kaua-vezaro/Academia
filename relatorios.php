@@ -1,17 +1,16 @@
 <?php
 session_start();
 include("conexao.php");
-// Verifica se o usuário está logado 
+
 if (!isset($_SESSION["usuario"])) {
     header("Location: login.php");
     exit;
 }
-// Recebe os filtros vindos pela URL
-// Se não existirem, usa valor vazio 
+
 $nome = $_GET['nome'] ?? '';
 $data = $_GET['data'] ?? '';
 $status = $_GET['status'] ?? '';
-// Monta a consulta dos pagamentos
+
 $sql = "SELECT 
             pagamentos.id,
             alunos.nome AS aluno,
@@ -21,34 +20,57 @@ $sql = "SELECT
             pagamentos.status
         FROM pagamentos
         JOIN alunos ON alunos.id = pagamentos.aluno_id
-        WHERE 1=1"; // WHERE 1=1 é usdo para facilitar a adição de filtros dinâmicos 
+        WHERE 1=1";
 
-// Filtro por nome do aluno
 if (!empty($nome)) {
     $sql .= " AND alunos.nome LIKE '%$nome%'";
 }
 
-// Filtro por data do pagamento 
 if (!empty($data)) {
     $sql .= " AND pagamentos.data_pagamento = '$data'";
 }
 
-// Filtro por status
 if (!empty($status)) {
     $sql .= " AND pagamentos.status = '$status'";
 }
-// Executa a consulta no banco de dados 
+
+$sql .= " ORDER BY pagamentos.data_pagamento DESC";
+
 $result = mysqli_query($conexao, $sql);
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
 </head>
-<body>
+<body style="margin:0; display:flex; justify-content:center; align-items:center; height:100vh;">
+        <fieldset style="padding: 30px;">
 
-    <h1>Relatórios</h1>
-<!-- Tabela que exibe os resultados filtrados-->
+    <h1 align="center">Relatórios</h1>
+
+<form method="GET">
+    <label>Nome do Aluno:</label><br>
+    <input type="text" name="nome" value="<?php echo $nome; ?>"><br><br>
+
+    <label>Data do Pagamento:</label><br>
+    <input type="date" name="data" value="<?php echo $data; ?>"><br><br>
+
+    <label>Status:</label>
+    <select name="status">
+        <option value="">Todos</option>
+        <option value="Pago" <?php if ($status == "Pago") echo "selected"; ?>>
+            Pago
+        </option>
+        <option value="Pendente" <?php if ($status == "Pendente") echo "selected"; ?>>
+            Pendente
+        </option>
+    </select>
+
+    <input type="submit" value="Filtrar">
+</form>
+<br>
+
 <table border="1" cellpadding="10">
     <tr>
         <th>Aluno</th>
@@ -56,25 +78,32 @@ $result = mysqli_query($conexao, $sql);
         <th>Data</th>
         <th>Forma de Pagamento</th>
         <th>Status</th>
+        <th>Ações</th>
     </tr>
-    <?php 
-    // Percorre todos os resultados da consulta 
-    while ($row = mysqli_fetch_assoc($result)) { 
-    ?>
+
+    <?php while ($row = mysqli_fetch_assoc($result)) { ?>
     <tr>
-        <!-- Exibe o nome do aluno e os de baixo faz a mesma coisa -->
         <td><?= $row['aluno'] ?></td>
-        <td><?= $row['valor'] ?></td>
+        <td>R$ <?php echo number_format($row['valor'], 2, ',', '.'); ?></td>
         <td><?= $row['data_pagamento'] ?></td>
         <td><?= $row['forma_pagamento'] ?></td>
         <td><?= $row['status'] ?></td>
+        <td>
+            <a href="editar_pagamento.php?id=<?= $row['id'] ?>">Editar</a> |
+            <a href="excluir_pagamento.php?id=<?= $row['id'] ?>"
+            onclick="return confirm('Deseja excluir este pagamento?')">
+            Excluir</a>
+        </td>
     </tr>
-    <?php } ?>
+    <?php 
+    }
+?>
 </table>
 <br>
 <button type="button" onclick="window.location.href='dashboard.php'">
         Voltar
-</button>
-<br><br>
+    </button>
+    <br><br>
+    </fieldset>
 </body>
 </html>

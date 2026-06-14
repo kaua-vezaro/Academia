@@ -1,3 +1,31 @@
+<?php
+session_start();
+include "conexao.php";
+
+if (isset($_POST["entrar"])){
+    $usuario = $_POST["usuario"];
+    $senha = $_POST["senha"];
+    $sql = "SELECT * FROM usuario WHERE usuario = '$usuario'";
+    $resultado = mysqli_query($conexao, $sql);
+
+    if (mysqli_num_rows($resultado) > 0) {
+        $dados = mysqli_fetch_assoc($resultado);
+        if ($senha == $dados["senha"]) {
+            $_SESSION["usuario"] = $dados["usuario"];
+            $_SESSION["nivel"] = $dados["nivel"];
+            $_SESSION["nome"] = $dados["nome"];
+            header("Location: dashboard.php");
+            exit;
+        } else {
+            $mensagem = "Senha incorreta!";
+        }
+    } else {
+        $mensagem = "Usuário não encontrado!";
+    }
+}
+?>
+
+
 <!DOCTYPE html>
 <html lang="pt-BR">
     <head>
@@ -5,48 +33,24 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Login - Academia</title>
     </head>
-    <body> 
-        <h2> Login do Sistema</h2>
-        <!-- Formulário para enviar as informações -->
-        <form action="login.php" method="POST">
-            <label> Usuário: </label><br>
-            <input type="text" name="usuario" required><br><br>
-            <label> Senha: </label><br>
-            <input type="password" name="senha" required><br><br>
-            <input type="submit" name="entrar"value="Entrar">
-        </form>
+    <body style="margin:0; display:flex; justify-content:center; align-items:center; height:100vh;">
+        <tr>
+                <fieldset style="padding: 50px;">
+                <h2> Login do Sistema</h2>
+                <form action="login.php" method="POST">
+                    <label> Usuário: </label><br>
+                    <input type="text" name="usuario" required><br><br>
+                    <label> Senha: </label><br>
+                    <input type="password" name="senha" required><br><br>
+                    <input type="submit" name="entrar"value="Entrar">
+                    <?php
+                    if (!empty($mensagem)) {
+                        echo "<p><b>$mensagem</b></p>";
+                     }
+                    ?>
+                </form>
+                </fieldset>
+        </tr>
+    </table>
     </body>
 </html>
-
-<?php
-session_start();
-include "conexao.php";
-// Verifica se o botão entrar foi acionado
-if (isset($_POST["entrar"])){
-    // Recebe os dados enviados no formulário
-    $usuario = $_POST["usuario"];
-    $senha = $_POST["senha"];
-    // Busca o usuário no banco de dados pelo nome de usuário
-    $sql = "SELECT * FROM usuario WHERE usuario = '$usuario'";
-    $resultado = mysqli_query($conexao, $sql);
-    // Verifica se encontrou algum usuário com esse nome
-    if (mysqli_num_rows($resultado) > 0) {
-        // Pega os dados do usuário encontrado
-        $dados = mysqli_fetch_assoc($resultado);
-        // compara a senha digitada com a senha do banco 
-        if ($senha == $dados["senha"]) {
-            // Se estiver correto, cria variáveis de sessão
-            $_SESSION["usuario"] = $dados["usuario"];
-            $_SESSION["nivel"] = $dados["nivel"];
-            $_SESSION["nome"] = $dados["nome"];
-            // E redireciona para o dashboard
-            header("Location: dashboard.php");
-            exit;
-        } else {
-            echo "Senha incorreta!";
-        }
-    } else {
-        echo "Usuário não encontrado!";
-    }
-}
-?>
